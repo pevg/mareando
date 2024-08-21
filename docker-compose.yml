@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mareando:
+    build: .
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mareando
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      MAREOS_SERVER_URL: http://mareos_app_1:8080
+    networks:
+      - mareos_app-network
+    depends_on:
+      - db_init
+
+  db_init:
+    image: postgres:15-alpine
+    networks:
+      - mareos_app-network
+    entrypoint: >
+      sh -c "
+        echo 'Esperando a que la base de datos esté disponible...';
+        sleep 10;
+        PGPASSWORD=admin psql -h db -U admin -d postgres -c 'CREATE DATABASE mareando';
+        echo 'Base de datos mareando creada con éxito.';
+      "
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+
+networks:
+  mareos_app-network:
+    external: true
